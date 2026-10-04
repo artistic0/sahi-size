@@ -1,0 +1,69 @@
+---
+import SourceNote from './SourceNote.astro'
+import { describeKb, describePx, describeType } from '../data/describe'
+import type { Exam, Preset } from '../data/types'
+import { pages, ui } from '../i18n/en'
+
+interface Props {
+  exam: Exam
+}
+const { exam } = Astro.props
+const E = pages.exam
+const label = (p: Preset) => ui.presetLabel[p.id] ?? ui.doc[p.doc]
+const size = (p: Preset) => (p.live ? E.live : describeKb(p))
+const pixels = (p: Preset) => (p.live ? E.live : (describePx(p) ?? E.any) + (p.approx && p.px ? ' (suggested)' : ''))
+---
+
+<!-- Phones: one card per document. -->
+<ul class="sm:hidden flex flex-col gap-3">
+  {
+    exam.presets.map((p) => (
+      <li class="surface p-4 text-sm flex flex-col gap-1">
+        <p class="font-semibold text-base">{label(p)}</p>
+        <p>
+          <span class="muted">{E.colType}:</span> {p.live ? '—' : describeType(p)}
+        </p>
+        <p>
+          <span class="muted">{E.colSize}:</span> {size(p)}
+        </p>
+        <p>
+          <span class="muted">{E.colPx}:</span> {pixels(p)}
+        </p>
+        <SourceNote preset={p} />
+      </li>
+    ))
+  }
+</ul>
+
+<div class="hidden sm:block overflow-x-auto surface">
+  <table class="w-full text-sm">
+    <caption class="sr-only">{E.specHeading(exam.name)}</caption>
+    <thead>
+      <tr class="text-left border-b border-[var(--line)]">
+        <th scope="col" class="p-3">{E.colDoc}</th>
+        <th scope="col" class="p-3">{E.colType}</th>
+        <th scope="col" class="p-3">{E.colSize}</th>
+        <th scope="col" class="p-3">{E.colPx}</th>
+        <th scope="col" class="p-3">{E.sourceLabel}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        exam.presets.map((p) => (
+          <tr class="border-b border-[var(--line)] last:border-0 align-top">
+            <th scope="row" class="p-3 font-semibold text-left">
+              {label(p)}
+            </th>
+            <td class="p-3">{p.live ? '—' : describeType(p)}</td>
+            <td class="p-3 whitespace-nowrap">{size(p)}</td>
+            <td class="p-3">{pixels(p)}</td>
+            <td class="p-3">
+              <SourceNote preset={p} />
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+</div>
+

@@ -1,0 +1,45 @@
+{
+  "name": "sahi-size",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "predev": "node tools/copy-pdfjs.mjs",
+    "dev": "astro dev",
+    "prebuild": "node tools/copy-pdfjs.mjs",
+    "build": "astro check && astro build",
+    "preview": "node tools/static-server.mjs 4329 /sahi-size/",
+    "lint": "oxlint",
+    "test": "vitest run",
+    "e2e": "playwright test",
+    "presets:check": "tsx tools/check-presets.ts",
+    "screens": "playwright test --project=desktop tests/e2e/screens.spec.ts"
+  },
+  "dependencies": {
+    "@astrojs/react": "^7.0.0",
+    "@astrojs/sitemap": "^3.7.4",
+    "@cantoo/pdf-lib": "^2.11.1",
+    "astro": "^7.3.5",
+    "comlink": "^4.4.2",
+    "pdfjs-dist": "^6.4.299",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@axe-core/playwright": "^4.13.0",
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/pngjs": "^6.0.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jpeg-js": "^0.4.4",
+    "oxlint": "^1.86.0",
+    "pngjs": "^7.0.0",
+    "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.3"
+  }
+}

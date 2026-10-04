@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro'
+import { pages } from '../i18n/en'
+import { href } from '../lib/paths'
+
+const N = pages.notFound
+---
+
+<Base title={N.title} description={N.text} noindex>
+  <h1 class="text-3xl font-extrabold">{N.h1}</h1>
+  <p class="mt-3 muted">{N.text}</p>
+  <p class="mt-4"><a class="btn btn-primary" href={href()}>SahiSize home</a></p>
+</Base>

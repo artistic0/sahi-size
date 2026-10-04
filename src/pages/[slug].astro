@@ -1,0 +1,159 @@
+---
+import Base from '../layouts/Base.astro'
+import Faq from '../components/Faq.astro'
+import SpecTable from '../components/SpecTable.astro'
+import Tool from '../tool/Tool'
+import { formatDate, newestVerified } from '../data/describe'
+import { EXAMS, examById } from '../data/exams'
+import { GENERIC, type GenericPage } from '../data/generic'
+import type { Exam } from '../data/types'
+import { pages, ui } from '../i18n/en'
+import { href, REPORT_URL } from '../lib/paths'
+
+type Page = { kind: 'exam'; exam: Exam } | { kind: 'generic'; page: GenericPage }
+
+export function getStaticPaths() {
+  return [
+    ...EXAMS.map((exam) => ({ params: { slug: exam.slug }, props: { kind: 'exam', exam } satisfies Page })),
+    ...GENERIC.map((page) => ({ params: { slug: page.slug }, props: { kind: 'generic', page } satisfies Page })),
+  ]
+}
+
+const props = Astro.props as Page
+const home = { name: 'Home', href: href() }
+const lite = (e: Exam) => ({ id: e.id, name: e.name, slug: e.slug, presets: e.presets })
+---
+
+{
+  props.kind === 'exam' &&
+    (() => {
+      const exam = props.exam
+      const C = pages.exams[exam.id as keyof typeof pages.exams]
+      const E = pages.exam
+      const verified = newestVerified(exam.presets)
+      const faqLd = {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: C.faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+      }
+      return (
+        <Base title={C.title} description={C.description} breadcrumbs={[home, { name: exam.name, href: href(exam.slug) }]} jsonLd={[faqLd]}>
+          <h1 class="text-3xl font-extrabold leading-tight">{C.h1}</h1>
+          <p class="mt-3 text-lg muted max-w-3xl">{C.intro}</p>
+          <p class="mt-2 text-sm muted">{C.covers}</p>
+          {'note' in C && C.note && <p class="mt-4 surface p-4 border-l-4 border-l-[var(--accent)]">{C.note}</p>}
+
+          <section aria-labelledby="tool-h" class="mt-6">
+            <h2 id="tool-h" class="sr-only">{E.toolHeading(exam.name)}</h2>
+            <Tool client:load mode="exam" exam={lite(exam)} />
+          </section>
+
+          <section aria-labelledby="spec-h" class="mt-10">
+            <h2 id="spec-h" class="text-xl font-bold mb-3">{E.specHeading(exam.name)}</h2>
+            <SpecTable exam={exam} />
+            <p class="mt-2 text-sm muted">
+              {!verified || exam.presets.some((p) => !p.source)
+                ? ui.unverified
+                : exam.presets.some((p) => p.source?.partial)
+                  ? ui.partly(formatDate(verified))
+                  : ui.verified(formatDate(verified))}{' '}
+              <a href={REPORT_URL + encodeURIComponent(exam.name)} rel="noopener">
+                {pages.layout.footerLinks.report}
+              </a>
+            </p>
+          </section>
+
+          <section aria-labelledby="steps-h" class="mt-10 prose-site">
+            <h2 id="steps-h">{E.stepsHeading}</h2>
+            {exam.presets.map((p) => (
+              <>
+                <h3>{ui.presetLabel[p.id] ?? ui.doc[p.doc]}</h3>
+                <ul>
+                  {((C.rules as Record<string, string[]>)[p.id] ?? []).map((r) => (
+                    <li>{r}</li>
+                  ))}
+                </ul>
+              </>
+            ))}
+          </section>
+
+          <section aria-labelledby="reject-h" class="mt-10 prose-site">
+            <h2 id="reject-h">{E.rejectHeading}</h2>
+            <ul>
+              {C.rejections.map((r) => (
+                <li>{r}</li>
+              ))}
+            </ul>
+          </section>
+
+          <Faq items={C.faq} heading={E.faqHeading} />
+
+          <section aria-labelledby="related-h" class="mt-10">
+            <h2 id="related-h" class="text-xl font-bold mb-3">{E.relatedHeading}</h2>
+            <ul class="flex flex-wrap gap-2">
+              {exam.related
+                .map((id) => examById(id))
+                .filter((e): e is Exam => !!e)
+                .map((e) => (
+                  <li>
+                    <a class="btn" href={href(e.slug)}>
+                      {e.name}
+                    </a>
+                  </li>
+                ))}
+              <li>
+                <a class="btn" href={href('compress-pdf-to-200kb')}>
+                  Compress PDF
+                </a>
+              </li>
+            </ul>
+          </section>
+        </Base>
+      )
+    })()
+}
+
+{
+  props.kind === 'generic' &&
+    (() => {
+      const g = props.page
+      const G = pages.generic
+      const copy =
+        g.kind === 'resize'
+          ? G.resizeKb(g.kb.max)
+          : g.kind === 'increase'
+            ? G.increase
+            : g.kind === 'nameDate'
+              ? G.nameDate
+              : g.kind === 'pdf'
+                ? G.pdfKb(g.kb.max)
+                : g.kind === 'imagesToPdf'
+                  ? G.imagesToPdf
+                  : G.check
+      return (
+        <Base title={copy.title} description={copy.description} breadcrumbs={[home, { name: copy.h1, href: href(g.slug) }]}>
+          <h1 class="text-3xl font-extrabold leading-tight">{copy.h1}</h1>
+          <p class="mt-3 text-lg muted max-w-3xl">{copy.intro}</p>
+          <section class="mt-6" aria-label="Tool">
+            {(g.kind === 'resize' || g.kind === 'increase') && <Tool client:load mode="resize" kb={g.kb} />}
+            {g.kind === 'nameDate' && <Tool client:load mode="resize" kb={g.kb} nameDate />}
+            {g.kind === 'pdf' && <Tool client:load mode="pdf" kb={g.kb} />}
+            {g.kind === 'imagesToPdf' && <Tool client:load mode="pdf" kb={g.kb} images />}
+            {g.kind === 'check' && <Tool client:load mode="check" exams={EXAMS.map(lite)} />}
+          </section>
+          <section class="mt-10" aria-labelledby="exams-h">
+            <h2 id="exams-h" class="text-xl font-bold mb-3">Exact sizes for your exam</h2>
+            <ul class="flex flex-wrap gap-2">
+              {EXAMS.map((e) => (
+                <li>
+                  <a class="btn" href={href(e.slug)}>
+                    {e.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </Base>
+      )
+    })()
+}

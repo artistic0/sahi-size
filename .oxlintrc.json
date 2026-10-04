@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc"],
+  "ignorePatterns": ["dist", "test-results", "playwright-report", ".astro", "public/pdfjs"],
+  "rules": {
+    "react/rules-of-hooks": "error"
+  },
+  "overrides": [
+    {
+      "files": ["src/**"],
+      "rules": {
+        "no-restricted-globals": [
+          "error",
+          { "name": "fetch", "message": "SahiSize never makes network requests. Files must stay on the device." },
+          { "name": "XMLHttpRequest", "message": "SahiSize never makes network requests." },
+          { "name": "WebSocket", "message": "SahiSize never makes network requests." },
+          { "name": "EventSource", "message": "SahiSize never makes network requests." },
+          { "name": "WebTransport", "message": "SahiSize never makes network requests." }
+        ]
+      }
+    }
+  ]
+}

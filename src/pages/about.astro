@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro'
+import { pages } from '../i18n/en'
+import { href, REPORT_URL } from '../lib/paths'
+
+const P = pages.aboutPage
+---
+
+<Base title={P.title} description={P.description} breadcrumbs={[{ name: 'Home', href: href() }, { name: 'About', href: href('about') }]}>
+  <article class="prose-site max-w-3xl">
+    <h1 class="text-3xl font-extrabold">{P.h1}</h1>
+    <p class="text-lg muted">
+      Every exam season, applicants get stuck on one line in a notification: “photo 20–50 KB, signature 10–20 KB”. Many end up paying a cyber café to do it.
+      SahiSize does it on your phone, for free, and your files never leave it.
+    </p>
+    <h2>Independent</h2>
+    <p>
+      SahiSize is not connected to IBPS, SBI, SSC, UPSC, RRB, NTA, the Ministry of External Affairs, the Income Tax Department or any other body. Their names are
+      used only to say which rules a preset follows.
+    </p>
+    <h2>Where the rules come from</h2>
+    <p>
+      Each preset is checked against the official notification, and its page shows the source and the date it was checked. Rules change with every notification,
+      so always compare with yours. If you spot a difference, please <a href={REPORT_URL} rel="noopener">report it</a> and include a link to the notice.
+    </p>
+    <h2>Free</h2>
+    <p>No sign-up, no limits, no ads, no watermark.</p>
+  </article>
+</Base>

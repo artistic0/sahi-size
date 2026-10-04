@@ -1,0 +1,194 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', 'Helvetica Neue', Arial, sans-serif;
+  --color-brand-50: #effcf9;
+  --color-brand-100: #cdf6ec;
+  --color-brand-200: #9aebd9;
+  --color-brand-500: #14a38b;
+  --color-brand-600: #0d8573;
+  --color-brand-700: #0f6b5e;
+  --color-brand-800: #11564d;
+  --color-brand-900: #123f39;
+}
+
+:root {
+  color-scheme: light dark;
+  --bg: #f6f8f7;
+  --surface: #ffffff;
+  --surface-2: #eef3f1;
+  --text: #10201c;
+  --muted: #4b5f59;
+  --line: #d6e0dc;
+  --accent: #0f6b5e;
+  --accent-text: #ffffff;
+  --ok: #157f3c;
+  --warn: #9a5b00;
+  --bad: #b42318;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1311;
+    --surface: #131d1a;
+    --surface-2: #1a2723;
+    --text: #e4efeb;
+    --muted: #a3b6b0;
+    --line: #2b3b36;
+    --accent: #3cc7ad;
+    --accent-text: #06201b;
+    --ok: #4ad37d;
+    --warn: #f0b545;
+    --bad: #ff8a80;
+  }
+}
+
+/* In the base layer, so utility classes (like no-underline on button links) still win. */
+@layer base {
+  html {
+    background: var(--bg);
+    color: var(--text);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.55;
+  }
+
+  /* Links in text are underlined, not told apart by colour alone. */
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Small shared building blocks (used by Astro pages and the React tool). */
+@layer components {
+  .surface {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1rem;
+  }
+  .muted {
+    color: var(--muted);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.55rem 1rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .btn:hover {
+    background: var(--surface-2);
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
+  .btn-primary:hover {
+    background: var(--accent);
+    filter: brightness(1.08);
+  }
+  .field {
+    min-height: 44px;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.6rem;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--text);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: var(--surface-2);
+    color: var(--muted);
+  }
+  .prose-site h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin: 2rem 0 0.75rem;
+  }
+  .prose-site h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 1.25rem 0 0.5rem;
+  }
+  .prose-site p,
+  .prose-site ul,
+  .prose-site ol {
+    margin: 0.6rem 0;
+  }
+  .prose-site ul {
+    list-style: disc;
+    padding-left: 1.25rem;
+  }
+  .prose-site ol {
+    list-style: decimal;
+    padding-left: 1.25rem;
+  }
+  .prose-site code {
+    font-size: 0.9em;
+    background: var(--surface-2);
+    padding: 0.05rem 0.3rem;
+    border-radius: 0.3rem;
+  }
+}
+
+/* The crop canvas must not scroll the page while dragging on phones. */
+.crop-canvas {
+  touch-action: none;
+  cursor: grab;
+}
+.crop-canvas:active {
+  cursor: grabbing;
+}
+
+.checker-bg {
+  background-image: linear-gradient(45deg, var(--surface-2) 25%, transparent 25%), linear-gradient(-45deg, var(--surface-2) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, var(--surface-2) 75%), linear-gradient(-45deg, transparent 75%, var(--surface-2) 75%);
+  background-size: 16px 16px;
+  background-position:
+    0 0,
+    0 8px,
+    8px -8px,
+    -8px 0;
+}

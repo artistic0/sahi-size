@@ -1,0 +1,11 @@
+{
+  "name": "SahiSize: exact-size photo, signature and PDF for exam forms",
+  "short_name": "SahiSize",
+  "description": "Resize photos, signatures and PDFs to the exact size exam and government forms ask for. Nothing is uploaded.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6f8f7",
+  "theme_color": "#0f6b5e",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

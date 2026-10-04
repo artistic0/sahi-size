@@ -1,0 +1,19 @@
+node_modules
+dist
+.astro
+*.log
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# Copied from node_modules/pdfjs-dist by tools/copy-pdfjs.mjs
+public/pdfjs/
+
+# Test output
+test-results/
+playwright-report/
+tests/fixtures/generated/
+
+# Never commit your own documents used for manual testing
+fixtures/private/

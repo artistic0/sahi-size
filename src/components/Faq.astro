@@ -1,0 +1,28 @@
+---
+import type { Faq } from '../i18n/en'
+
+interface Props {
+  items: Faq[]
+  heading: string
+}
+const { items, heading } = Astro.props
+---
+
+<section aria-labelledby="faq-h" class="mt-10">
+  <h2 id="faq-h" class="text-xl font-bold mb-3">{heading}</h2>
+  <div class="flex flex-col gap-2">
+    {
+      items.map((f) => (
+        <details class="surface p-4 group">
+          <summary class="font-semibold cursor-pointer list-none flex justify-between gap-3">
+            {f.q}
+            <span aria-hidden="true" class="muted group-open:rotate-45 transition-transform">
+              +
+            </span>
+          </summary>
+          <p class="mt-2 muted">{f.a}</p>
+        </details>
+      ))
+    }
+  </div>
+</section>

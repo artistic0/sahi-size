@@ -1,0 +1,157 @@
+---
+import '../styles/global.css'
+import { EXAMS } from '../data/exams'
+import { GENERIC } from '../data/generic'
+import { pages, ui } from '../i18n/en'
+import { asset, href, REPORT_URL } from '../lib/paths'
+
+interface Crumb {
+  name: string
+  href: string
+}
+interface Props {
+  title: string
+  description: string
+  /** Extra JSON-LD objects (the WebApplication entry is always added). */
+  jsonLd?: object[]
+  breadcrumbs?: Crumb[]
+  noindex?: boolean
+}
+
+const { title, description, jsonLd = [], breadcrumbs = [], noindex = false } = Astro.props
+const canonical = new URL(Astro.url.pathname, Astro.site).href
+const verification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION
+const site = new URL(href(), Astro.site).href
+const L = pages.layout
+
+const structured = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: ui.site,
+    url: site,
+    applicationCategory: 'MultimediaApplication',
+    operatingSystem: 'Any',
+    browserRequirements: 'Requires JavaScript',
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
+    inLanguage: 'en-IN',
+  },
+  ...(breadcrumbs.length
+    ? [
+        {
+          '@context': 'https://schema.org',
+          '@type': 'BreadcrumbList',
+          itemListElement: breadcrumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: new URL(c.href, Astro.site).href })),
+        },
+      ]
+    : []),
+  ...jsonLd,
+]
+---
+
+<!doctype html>
+<html lang="en-IN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta name="theme-color" content="#0f6b5e" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" type="image/svg+xml" href={asset('favicon.svg')} />
+    <link rel="manifest" href={asset('manifest.webmanifest')} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={ui.site} />
+    <meta property="og:locale" content="en_IN" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta name="twitter:card" content="summary" />
+    {verification && <meta name="google-site-verification" content={verification} />}
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(structured)} />
+  </head>
+  <body class="min-h-dvh flex flex-col">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 btn">{L.skip}</a>
+    <header class="border-b border-[var(--line)] bg-[var(--surface)]">
+      <div class="mx-auto max-w-5xl px-4 py-3 flex items-center gap-3">
+        <a href={href()} class="flex items-center gap-2 no-underline text-[var(--text)] font-bold text-lg">
+          <img src={asset('favicon.svg')} alt="" width="32" height="32" />
+          <span>{ui.site}</span>
+        </a>
+        <nav aria-label="Main" class="ml-auto hidden md:flex items-center gap-1 text-sm">
+          <a class="px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] no-underline text-[var(--text)]" href={href() + '#exams'}>{L.nav.exams}</a>
+          <a class="px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] no-underline text-[var(--text)]" href={href('resize-image-to-50kb')}>{L.nav.resize}</a>
+          <a class="px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] no-underline text-[var(--text)]" href={href('compress-pdf-to-200kb')}>{L.nav.pdf}</a>
+          <a class="px-3 py-2 rounded-lg hover:bg-[var(--surface-2)] no-underline text-[var(--text)]" href={href('check-photo-size')}>{L.nav.check}</a>
+          <a class="chip ml-2 no-underline" href={href('privacy')}>🔒 {ui.privacy.badge}</a>
+        </nav>
+        <details class="ml-auto md:hidden relative">
+          <summary class="btn list-none" aria-label={L.menu}>☰</summary>
+          <nav aria-label="Main" class="absolute right-0 mt-2 w-56 surface p-2 flex flex-col z-40 shadow-lg">
+            <a class="px-3 py-3 rounded-lg no-underline text-[var(--text)]" href={href() + '#exams'}>{L.nav.exams}</a>
+            <a class="px-3 py-3 rounded-lg no-underline text-[var(--text)]" href={href('resize-image-to-50kb')}>{L.nav.resize}</a>
+            <a class="px-3 py-3 rounded-lg no-underline text-[var(--text)]" href={href('compress-pdf-to-200kb')}>{L.nav.pdf}</a>
+            <a class="px-3 py-3 rounded-lg no-underline text-[var(--text)]" href={href('check-photo-size')}>{L.nav.check}</a>
+            <a class="px-3 py-3 rounded-lg no-underline text-[var(--text)]" href={href('privacy')}>{L.nav.privacy}</a>
+          </nav>
+        </details>
+      </div>
+    </header>
+
+    {
+      breadcrumbs.length > 1 && (
+        <nav aria-label="Breadcrumb" class="mx-auto w-full max-w-5xl px-4 pt-3 text-sm muted">
+          <ol class="flex flex-wrap gap-1">
+            {breadcrumbs.map((c, i) => (
+              <li class="flex gap-1">
+                {i > 0 && <span aria-hidden="true">›</span>}
+                {i < breadcrumbs.length - 1 ? <a href={c.href}>{c.name}</a> : <span aria-current="page">{c.name}</span>}
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
+
+    <main id="main" class="mx-auto w-full max-w-5xl px-4 py-6 flex-1">
+      <slot />
+    </main>
+
+    <footer class="border-t border-[var(--line)] bg-[var(--surface)] text-sm">
+      <div class="mx-auto max-w-5xl px-4 py-6 flex flex-col gap-4">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <nav aria-label={L.footerExams}>
+            <h2 class="font-semibold mb-2">{L.footerExams}</h2>
+            <ul class="flex flex-wrap gap-x-4 gap-y-1">
+              {EXAMS.map((e) => <li><a href={href(e.slug)}>{e.name}</a></li>)}
+            </ul>
+          </nav>
+          <nav aria-label={L.footerTools}>
+            <h2 class="font-semibold mb-2">{L.footerTools}</h2>
+            <ul class="flex flex-wrap gap-x-4 gap-y-1">
+              {GENERIC.map((g) => <li><a href={href(g.slug)}>{L.toolLabel(g.kind, 'kb' in g ? g.kb.max : undefined)}</a></li>)}
+            </ul>
+          </nav>
+        </div>
+        <p class="muted">{L.footer}</p>
+        <ul class="flex flex-wrap gap-x-4 gap-y-2">
+          <li><a href={href('about')}>{L.footerLinks.about}</a></li>
+          <li><a href={href('privacy')}>{L.footerLinks.privacy}</a></li>
+          <li><a href={href('how-it-works')}>{L.footerLinks.how}</a></li>
+          <li><a href={REPORT_URL} rel="noopener">{L.footerLinks.report}</a></li>
+        </ul>
+      </div>
+    </footer>
+
+    <script>
+      import { startNetWatch } from '../lib/netwatch'
+      import { startOffline } from '../lib/offline'
+
+      startNetWatch()
+      startOffline()
+    </script>
+  </body>
+</html>

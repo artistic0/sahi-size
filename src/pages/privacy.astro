@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro'
+import { pages } from '../i18n/en'
+import { href, REPO_URL } from '../lib/paths'
+import { CSP_ASTRO_DIRECTIVES, CSP_DIRECTIVES } from '../security'
+
+const P = pages.privacyPage
+---
+
+<Base title={P.title} description={P.description} breadcrumbs={[{ name: 'Home', href: href() }, { name: 'Privacy', href: href('privacy') }]}>
+  <article class="prose-site max-w-3xl">
+    <h1 class="text-3xl font-extrabold">{P.h1}</h1>
+    <p class="text-lg muted">
+      Photos of your face, your signature and documents like Aadhaar are exactly the files you shouldn’t hand to a random website. SahiSize never receives
+      them: everything is done by your own browser, on your own device.
+    </p>
+
+    <h2>How that is enforced, not just promised</h2>
+    <ul>
+      <li><strong>No server.</strong> SahiSize is a set of static files. There is no upload endpoint, no database and no account.</li>
+      <li>
+        <strong>The page is locked.</strong> Every page carries a Content-Security-Policy with <code>connect-src 'none'</code>. Your browser itself refuses any
+        attempt by the page to send data, even to this site. Try it below.
+      </li>
+      <li><strong>The workers are locked too.</strong> The background workers that process images and PDFs remove every network function before they start.</li>
+      <li><strong>No analytics, no cookies, no tracking scripts</strong>, and no third-party code at all: every file the site runs comes from this site.</li>
+      <li><strong>Nothing is stored.</strong> Your files live in memory only while the page is open. Close the tab and they are gone.</li>
+      <li><strong>Clean output.</strong> Files you download carry no location, camera or date details (EXIF), even if your photo had them.</li>
+      <li><strong>Works offline.</strong> After your first visit, turn on airplane mode: the tool still works, which is only possible because it never needed a server.</li>
+    </ul>
+
+    <h2>Check it yourself</h2>
+    <div class="surface p-4 not-prose flex flex-col gap-3">
+      <button type="button" class="btn self-start" id="exfil">Try to send data from this page</button>
+      <p id="exfil-result" aria-live="polite" class="text-sm"></p>
+      <p class="text-sm muted" id="loaded-summary">Files loaded since this page opened: counting…</p>
+      <ul id="loaded-list" class="text-xs muted break-all list-none p-0"></ul>
+    </div>
+
+    <h2>The exact policy</h2>
+    <pre class="surface p-4 text-xs overflow-x-auto"><code>{[...CSP_DIRECTIVES, ...CSP_ASTRO_DIRECTIVES].join(';\n')}</code></pre>
+
+    <h2>What we do see</h2>
+    <p>
+      GitHub Pages, which hosts the site, keeps ordinary server logs of which pages are requested, like any website. Those logs never contain your files. To learn
+      which pages people find through search, we use Google Search Console, which works from Google’s side and needs no script on this site.
+    </p>
+    <p>The code is open: <a href={REPO_URL} rel="noopener">{REPO_URL.replace('https://', '')}</a>.</p>
+  </article>
+
+  <script>
+    import { loadedSinceStart, onLoaded } from '../lib/netwatch'
+
+    const result = document.getElementById('exfil-result')!
+    document.getElementById('exfil')!.addEventListener('click', async () => {
+      try {
+        // Deliberate: this request must be blocked by the page's CSP. That is the demonstration.
+        // oxlint-disable-next-line no-restricted-globals
+        await fetch('https://example.com/collect', { method: 'POST', body: 'test', mode: 'no-cors' })
+        result.textContent = 'The request was sent. This should never happen; please report it.'
+      } catch {
+        result.textContent = 'Blocked by your browser: this page cannot send anything anywhere.'
+      }
+    })
+
+    const summary = document.getElementById('loaded-summary')!
+    const list = document.getElementById('loaded-list')!
+    const draw = () => {
+      const all = loadedSinceStart()
+      const own = all.every((e) => new URL(e.url).origin === location.origin)
+      summary.textContent = `Files loaded since this page opened: ${all.length}${all.length ? (own ? ', all of them this site’s own code.' : '.') : '.'}`
+      list.replaceChildren(...all.map((e) => Object.assign(document.createElement('li'), { textContent: `${e.type}: ${e.url}` })))
+    }
+    draw()
+    onLoaded(draw)
+  </script>
+</Base>

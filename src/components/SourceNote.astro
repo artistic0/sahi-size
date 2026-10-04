@@ -1,0 +1,28 @@
+---
+import { formatDate } from '../data/describe'
+import type { Preset } from '../data/types'
+import { ui } from '../i18n/en'
+
+interface Props {
+  preset: Preset
+}
+const { source } = Astro.props.preset
+---
+
+{
+  source ? (
+    <div class="flex flex-col gap-1">
+      <a href={source.url} rel="noopener nofollow" class="text-sm">
+        {source.title}
+      </a>
+      <span class="muted text-xs">
+        {source.partial ? 'Partly checked' : 'Checked'} {formatDate(source.verifiedOn)}
+      </span>
+      {source.note && <span class="text-xs">{source.note}</span>}
+    </div>
+  ) : (
+    <span class="chip" title={ui.unverified}>
+      Not yet verified
+    </span>
+  )
+}

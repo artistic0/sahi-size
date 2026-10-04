@@ -1,0 +1,75 @@
+---
+import Base from '../layouts/Base.astro'
+import { EXAMS } from '../data/exams'
+import { pages } from '../i18n/en'
+import { href } from '../lib/paths'
+
+const H = pages.home
+const tools = [
+  { name: 'Resize an image to KB', href: href('resize-image-to-50kb') },
+  { name: 'Increase size in KB', href: href('increase-image-size-in-kb') },
+  { name: 'Compress PDF', href: href('compress-pdf-to-200kb') },
+  { name: 'Photos to PDF', href: href('images-to-pdf') },
+  { name: 'Photo with name and date', href: href('photo-with-name-and-date') },
+  { name: 'Check a file before uploading', href: href('check-photo-size') },
+]
+---
+
+<Base title={H.title} description={H.description}>
+  <section class="py-4">
+    <h1 class="text-3xl md:text-4xl font-extrabold leading-tight max-w-3xl">{H.h1}</h1>
+    <p class="mt-3 text-lg muted max-w-3xl">{H.intro}</p>
+  </section>
+
+  <section id="exams" aria-labelledby="exams-h" class="mt-6">
+    <h2 id="exams-h" class="text-xl font-bold mb-3">{H.examsHeading}</h2>
+    <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+      {
+        EXAMS.map((e) => (
+          <li>
+            <a href={href(e.slug)} class="surface flex flex-col p-4 h-full no-underline text-[var(--text)] hover:border-[var(--accent)]">
+              <span class="font-bold">{e.name}</span>
+              <span class="text-sm muted">{pages.exams[e.id as keyof typeof pages.exams].short}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section aria-labelledby="tools-h" class="mt-10">
+    <h2 id="tools-h" class="text-xl font-bold mb-3">{H.toolsHeading}</h2>
+    <ul class="grid sm:grid-cols-2 md:grid-cols-3 gap-3">
+      {
+        tools.map((t) => (
+          <li>
+            <a href={t.href} class="surface block p-4 no-underline text-[var(--text)] font-semibold hover:border-[var(--accent)]">
+              {t.name} →
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <section aria-labelledby="steps-h" class="mt-10 grid md:grid-cols-2 gap-6">
+    <div>
+      <h2 id="steps-h" class="text-xl font-bold mb-3">{H.stepsHeading}</h2>
+      <ol class="flex flex-col gap-3">
+        {
+          H.steps.map((s, i) => (
+            <li class="flex gap-3">
+              <span class="chip shrink-0" aria-hidden="true">{i + 1}</span>
+              <span>{s}</span>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+    <div class="surface p-5">
+      <h2 class="text-xl font-bold mb-2">🔒 {H.privacyHeading}</h2>
+      <p class="muted">{H.privacyText}</p>
+      <p class="mt-3"><a href={href('privacy')}>How we make sure →</a></p>
+    </div>
+  </section>
+</Base>

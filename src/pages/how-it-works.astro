@@ -1,0 +1,83 @@
+---
+import Base from '../layouts/Base.astro'
+import { pages } from '../i18n/en'
+import { href, REPO_URL } from '../lib/paths'
+
+const P = pages.howPage
+const article = {
+  '@context': 'https://schema.org',
+  '@type': 'TechArticle',
+  headline: 'How SahiSize hits an exact KB size in the browser',
+  inLanguage: 'en-IN',
+}
+---
+
+<Base title={P.title} description={P.description} jsonLd={[article]} breadcrumbs={[{ name: 'Home', href: href() }, { name: 'How it works', href: href('how-it-works') }]}>
+  <article class="prose-site max-w-3xl">
+    <h1 class="text-3xl font-extrabold">{P.h1}</h1>
+    <p class="text-lg muted">
+      A portal rule like “photo 200 × 230 px, 20–50 KB, JPG” sounds simple. Meeting it reliably, on a cheap phone, without sending the photo anywhere, takes a
+      few tricks. Here they are.
+    </p>
+
+    <h2>1. What “KB” means</h2>
+    <p>
+      Some portals count 1 KB as 1000 bytes, most as 1024. A file of 50,500 bytes is 49.3 KB to one and 50.5 KB to the other. SahiSize aims inside both
+      readings: at least <em>min × 1024</em> bytes and at most <em>max × 1000</em> bytes, with a small margin so a strict “less than” check passes too.
+    </p>
+
+    <h2>2. Finding the best quality that fits</h2>
+    <p>
+      JPEG size grows with the encoder’s quality setting (1–100). SahiSize binary-searches it: try 100, try the lowest, then halve the gap until it finds the highest
+      quality still under the limit. That takes about eight encodes, and every result is remembered. If even the lowest quality is too big and the portal accepts a
+      range of sizes, it tries a slightly smaller picture instead, because a smaller sharp image beats a big blocky one.
+    </p>
+
+    <h2>3. When the file is too small</h2>
+    <p>
+      “Signature 10–20 KB” is the classic trap: a clean 140 × 60 signature is only a few KB even at the best quality. A JPEG is a list of segments, and one kind,
+      the comment segment (marker <code>FF FE</code>), is skipped by every decoder. SahiSize adds comment segments filled with spaces until the file reaches the
+      minimum. The picture is byte-for-byte the same; the tests decode both files and compare every pixel. PDFs get the same treatment with an XMP metadata packet,
+      which reserves whitespace padding by design.
+    </p>
+
+    <h2>4. Reading the file, not its name</h2>
+    <p>
+      A PNG renamed to <code>.jpg</code> still starts with the PNG signature, and portals that check those first bytes reject it. SahiSize reads the first bytes
+      (“magic numbers”) of every file. For JPEGs it walks the header segments to read the size, the DPI (from the JFIF header), the colour model (CMYK files
+      fail on many portals) and the EXIF rotation tag. Phones often store a photo sideways with a “rotate me” tag that some portals ignore. SahiSize applies the
+      rotation to the pixels and writes a file without the tag.
+    </p>
+
+    <h2>5. Resizing the same way in every browser</h2>
+    <p>
+      Browsers resize images differently, and big reductions (a 12-megapixel photo down to 200 × 230) can look jagged. SahiSize does it itself with area
+      averaging: every output pixel is the exact average of the source area it covers. It streams rows through a small cache, so memory stays low even for huge
+      photos, which are also decoded straight to a manageable size.
+    </p>
+
+    <h2>6. Cleaning up a signature photo</h2>
+    <ol>
+      <li>Estimate the paper’s brightness everywhere: the brightest pixel in each small block is paper, because ink strokes are thin. Smooth that map.</li>
+      <li>Divide every pixel by it. Shadows and uneven light disappear: paper becomes white everywhere, only ink stays dark.</li>
+      <li>Split paper from ink with Otsu’s method, softly, so stroke edges stay smooth.</li>
+      <li>Drop specks, find the ink’s bounding box, and crop to it so the signature fills its box (SSC wants at least 80%).</li>
+      <li>Repaint the ink in one even colour and fit it into the required size without stretching.</li>
+    </ol>
+
+    <h2>7. PDFs under a limit</h2>
+    <p>
+      If a PDF already fits, it is left alone. Otherwise SahiSize first tries a lossless re-save, which keeps the text. If that’s not enough, it re-draws each page
+      as a JPEG with a shared budget: each page gets what’s left divided by the pages left, so a blank page leaves room for a busy one. If any page can’t fit,
+      the whole document steps down a resolution (150, 120, 100, 85, 72 DPI) and tries again. Password-protected PDFs (like e-Aadhaar) are opened with your
+      password and saved without one, because portals reject locked files.
+    </p>
+
+    <h2>8. Keeping it private</h2>
+    <p>
+      All of this runs in Web Workers inside your browser. The page’s security policy blocks every network request, the workers delete their own network
+      functions before starting, and there is no server to send anything to. See <a href={href('privacy')}>Privacy</a>.
+    </p>
+    <p>The code is open source: <a href={REPO_URL} rel="noopener">{REPO_URL.replace('https://', '')}</a>.</p>
+  </article>
+</Base>

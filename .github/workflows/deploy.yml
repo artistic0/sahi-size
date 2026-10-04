@@ -1,0 +1,78 @@
+# Test, build and publish SahiSize to GitHub Pages on every push to main.
+# One-time setup: repo Settings → Pages → Build and deployment → Source: "GitHub Actions".
+# If any step fails, nothing is deployed.
+name: Test and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      BASE_PATH: /${{ github.event.repository.name }}/
+      # The Search Console token is public; set it as a repository variable when you have it.
+      PUBLIC_GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+
+      - name: Unit tests (engine, PDF, presets, worker lockdown)
+        run: npm test
+
+      - name: Lint (fails on any network API in src/)
+        run: npm run lint
+
+      - name: Preset data and page text agree; list rules to re-check
+        run: npm run presets:check
+
+      - name: Type-check and build
+        run: npm run build
+
+      - name: Check the privacy policy is baked into every page
+        run: |
+          for f in $(find dist -name index.html); do grep -q "connect-src 'none'" "$f" || { echo "missing CSP in $f"; exit 1; }; done
+
+      - run: npx playwright install --with-deps chromium firefox webkit
+
+      - name: End-to-end tests (Chromium, Firefox, WebKit, phone)
+        run: npm run e2e
+
+      - run: touch dist/.nojekyll
+
+      - uses: actions/configure-pages@v5
+        if: github.ref == 'refs/heads/main'
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main'
+        with:
+          path: dist
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
